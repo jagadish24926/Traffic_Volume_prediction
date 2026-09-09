@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Traffic Prediction</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #eef2ff,
+                    #f8fafc
+                );
+
+            color: #1e293b;
+
+            min-height: 100vh;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .header {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0f172a,
+                    #1e3a8a
+                );
+
+            color: white;
+
+            padding: 28px 20px;
+
+            text-align: center;
+        }
+
+
+        .header-icon {
+
+            font-size: 42px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .header h1 {
+
+            margin: 0;
+
+            font-size: 32px;
+        }
+
+
+        .header p {
+
+            margin: 8px 0 0;
+
+            color: #cbd5e1;
+
+            font-size: 15px;
+        }
+
+
+        /* =========================
+           MAIN CONTAINER
+        ========================= */
+
+        .container {
+
+            width: 92%;
+
+            max-width: 1100px;
+
+            margin: 35px auto;
+        }
+
+
+        /* =========================
+           DASHBOARD GRID
+        ========================= */
+
+        .dashboard {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 25px;
+        }
+
+
+        .card {
+
+            background: white;
+
+            border-radius: 18px;
+
+            padding: 28px;
+
+            box-shadow:
+                0 10px 30px
+                rgba(15, 23, 42, 0.08);
+        }
+
+
+        .card h2 {
+
+            margin-top: 0;
+
+            margin-bottom: 7px;
+
+            font-size: 22px;
+        }
+
+
+        .subtitle {
+
+            color: #64748b;
+
+            font-size: 14px;
+
+            margin-bottom: 25px;
+        }
+
+
+        /* =========================
+           INPUTS
+        ========================= */
+
+        .form-group {
+
+            margin-bottom: 20px;
+        }
+
+
+        .form-group label {
+
+            display: block;
+
+            font-weight: 600;
+
+            margin-bottom: 8px;
+
+            color: #334155;
+        }
+
+
+        .form-group select {
+
+            width: 100%;
+
+            padding: 13px;
+
+            border:
+                1px solid #cbd5e1;
+
+            border-radius: 10px;
+
+            font-size: 15px;
+
+            background: white;
+
+            outline: none;
+        }
+
+
+        .form-group select:focus {
+
+            border-color: #2563eb;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(37, 99, 235, 0.1);
+        }
+
+
+        /* =========================
+           DATE / TIME
+        ========================= */
+
+        .datetime-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 15px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .datetime-box {
+
+            background: #f8fafc;
+
+            border:
+                1px solid #e2e8f0;
+
+            padding: 16px;
+
+            border-radius: 12px;
+        }
+
+
+        .datetime-box .label {
+
+            color: #64748b;
+
+            font-size: 13px;
+
+            margin-bottom: 6px;
+        }
+
+
+        .datetime-box .value {
+
+            font-weight: bold;
+
+            font-size: 17px;
+
+            color: #0f172a;
+        }
+
+
+        /* =========================
+           HOLIDAY
+        ========================= */
+
+        .holiday-options {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 12px;
+        }
+
+
+        .holiday-options input {
+
+            display: none;
+        }
+
+
+        .holiday-options label {
+
+            text-align: center;
+
+            padding: 13px;
+
+            border:
+                1px solid #cbd5e1;
+
+            border-radius: 10px;
+
+            cursor: pointer;
+
+            font-weight: 600;
+
+            transition: 0.2s;
+        }
+
+
+        .holiday-options label:hover {
+
+            background: #eff6ff;
+
+            border-color: #2563eb;
+        }
+
+
+        .holiday-options
+        input:checked + label {
+
+            background: #2563eb;
+
+            color: white;
+
+            border-color: #2563eb;
+        }
+
+
+        /* =========================
+           BUTTON
+        ========================= */
+
+        .predict-button {
+
+            width: 100%;
+
+            padding: 15px;
+
+            border: none;
+
+            border-radius: 11px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #1d4ed8
+                );
+
+            color: white;
+
+            font-size: 17px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            margin-top: 8px;
+
+            transition: 0.2s;
+        }
+
+
+        .predict-button:hover {
+
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 8px 20px
+                rgba(37, 99, 235, 0.25);
+        }
+
+
+        /* =========================
+           RESULT
+        ========================= */
+
+        .result-card {
+
+            text-align: center;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: center;
+        }
+
+
+        .result-icon {
+
+            font-size: 55px;
+
+            margin-bottom: 5px;
+        }
+
+
+        .result-title {
+
+            color: #64748b;
+
+            font-size: 14px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+        }
+
+
+        .prediction-value {
+
+            font-size: 45px;
+
+            font-weight: 800;
+
+            margin: 12px 0 3px;
+
+            color: #0f172a;
+        }
+
+
+        .vehicle-label {
+
+            color: #64748b;
+
+            margin-bottom: 25px;
+        }
+
+
+        /* =========================
+           TRAFFIC STATUS
+        ========================= */
+
+        .traffic-status {
+
+            display: inline-block;
+
+            padding: 12px 25px;
+
+            border-radius: 50px;
+
+            font-size: 20px;
+
+            font-weight: 800;
+
+            margin-bottom: 20px;
+        }
+
+
+        .traffic-status.low {
+
+            background: #dcfce7;
+
+            color: #166534;
+        }
+
+
+        .traffic-status.medium {
+
+            background: #ffedd5;
+
+            color: #c2410c;
+        }
+
+
+        .traffic-status.heavy {
+
+            background: #fee2e2;
+
+            color: #b91c1c;
+        }
+
+
+        .result-info {
+
+            border-top:
+                1px solid #e2e8f0;
+
+            padding-top: 20px;
+
+            text-align: left;
+        }
+
+
+        .result-row {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            padding: 8px 0;
+
+            font-size: 14px;
+        }
+
+
+        .result-row span:first-child {
+
+            color: #64748b;
+        }
+
+
+        .result-row span:last-child {
+
+            font-weight: 600;
+        }
+
+
+        /* =========================
+           EMPTY RESULT
+        ========================= */
+
+        .empty-result {
+
+            text-align: center;
+
+            color: #64748b;
+        }
+
+
+        .empty-icon {
+
+            font-size: 70px;
+
+            opacity: 0.5;
+
+            margin-bottom: 15px;
+        }
+
+
+        .empty-result h3 {
+
+            color: #334155;
+
+            margin-bottom: 8px;
+        }
+
+
+        /* =========================
+           ERROR
+        ========================= */
+
+        .error {
+
+            margin-top: 20px;
+
+            padding: 15px;
+
+            background: #fef2f2;
+
+            color: #991b1b;
+
+            border-radius: 10px;
+
+            font-size: 14px;
+        }
+
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .footer {
+
+            text-align: center;
+
+            padding: 25px;
+
+            color: #64748b;
+
+            font-size: 13px;
+        }
+
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media(max-width: 750px) {
+
+            .dashboard {
+
+                grid-template-columns: 1fr;
+            }
+
+            .datetime-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+
+                font-size: 25px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ==========================================
+     HEADER
+=========================================== -->
+
+<header class="header">
+
+    <div class="header-icon">
+        🚦
+    </div>
+
+    <h1>
+        Smart Traffic Prediction System
+    </h1>
+
+    <p>
+        Traffic forecasting using Temporal Fusion Transformer
+    </p>
+
+</header>
+
+
+<!-- ==========================================
+     MAIN
+=========================================== -->
+
+<div class="container">
+
+    <div class="dashboard">
+
+
+        <!-- ==================================
+             USER INPUT CARD
+        =================================== -->
+
+        <div class="card">
+
+            <h2>
+                🔍 Traffic Prediction
+            </h2>
+
+            <div class="subtitle">
+                Enter today's information to forecast
+                traffic for the next hour.
+            </div>
+
+
+            <!-- LOCATION -->
+
+            <form action="/predict" method="POST">
+
+                <div class="form-group">
+
+                    <label>
+                        📍 Location
+                    </label>
+
+                    <select name="location">
+
+                        <option value="I-94, Minneapolis">
+                            I-94 — Minneapolis
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- DATE AND TIME -->
+
+                <div class="datetime-grid">
+
+                    <div class="datetime-box">
+
+                        <div class="label">
+                            📅 Today's Date
+                        </div>
+
+                        <div
+                            class="value"
+                            id="current-date"
+                        >
+                            {{ current_date }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="datetime-box">
+
+                        <div class="label">
+                            🕐 Current Time
+                        </div>
+
+                        <div
+                            class="value"
+                            id="current-time"
+                        >
+                            {{ current_time }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- HOLIDAY -->
+
+                <div class="form-group">
+
+                    <label>
+                        🎉 Is today a holiday?
+                    </label>
+
+
+                    <div class="holiday-options">
+
+                        <input
+                            type="radio"
+                            id="holiday-yes"
+                            name="holiday"
+                            value="Yes Holiday"
+                        >
+
+                        <label for="holiday-yes">
+                            ✓ Yes
+                        </label>
+
+
+                        <input
+                            type="radio"
+                            id="holiday-no"
+                            name="holiday"
+                            value="No Holiday"
+                            checked
+                        >
+
+                        <label for="holiday-no">
+                            ✕ No
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <!-- BUTTON -->
+
+                <button
+                    class="predict-button"
+                    type="submit"
+                >
+
+                    🔮 Predict Next Hour Traffic
+
+                </button>
+
+            </form>
+
+
+            {% if error %}
+
+            <div class="error">
+
+                <strong>⚠ Prediction Error</strong>
+
+                <br><br>
+
+                {{ error }}
+
+                {% if details %}
+
+                <br><br>
+
+                {{ details }}
+
+                {% endif %}
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- ==================================
+             RESULT CARD
+        =================================== -->
+
+        <div class="card result-card">
+
+
+            {% if prediction %}
+
+                <div class="result-icon">
+
+                    {{ traffic_icon }}
+
+                </div>
+
+
+                <div class="result-title">
+
+                    Predicted Traffic Volume
+
+                </div>
+
+
+                <div class="prediction-value">
+
+                    {{ prediction }}
+
+                </div>
+
+
+                <div class="vehicle-label">
+
+                    vehicles / hour
+
+                </div>
+
+
+                <div
+                    class="traffic-status {{ traffic_class }}"
+                >
+
+                    {{ traffic_icon }}
+
+                    {{ traffic_status }} TRAFFIC
+
+                </div>
+
+
+                <div class="result-info">
+
+
+                    <div class="result-row">
+
+                        <span>
+                            📍 Location
+                        </span>
+
+                        <span>
+                            {{ location }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="result-row">
+
+                        <span>
+                            🎉 Holiday
+                        </span>
+
+                        <span>
+                            {{ holiday }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="result-row">
+
+                        <span>
+                            🕐 Forecast
+                        </span>
+
+                        <span>
+                            Next Hour
+                        </span>
+
+                    </div>
+
+
+                </div>
+
+
+            {% else %}
+
+
+                <div class="empty-result">
+
+                    <div class="empty-icon">
+                        🚗
+                    </div>
+
+                    <h3>
+                        Ready to Predict
+                    </h3>
+
+                    <p>
+                        Enter the information on the
+                        left and click
+                        <strong>
+                            Predict Next Hour Traffic
+                        </strong>
+                        to see the forecast.
+                    </p>
+
+                </div>
+
+
+            {% endif %}
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     FOOTER
+=========================================== -->
+
+<div class="footer">
+
+    Temporal Fusion Transformer (TFT)
+    &nbsp;•&nbsp;
+    Traffic Volume Forecasting
+
+</div>
+
+
+<!-- ==========================================
+     LIVE DATE AND TIME
+=========================================== -->
+
+<script>
+
+function updateDateTime() {
+
+    const now = new Date();
+
+
+    const dateOptions = {
+
+        day: "2-digit",
+
+        month: "long",
+
+        year: "numeric"
+
+    };
+
+
+    const timeOptions = {
+
+        hour: "2-digit",
+
+        minute: "2-digit",
+
+        second: "2-digit",
+
+        hour12: true
+
+    };
+
+
+    document.getElementById(
+        "current-date"
+    ).textContent =
+        now.toLocaleDateString(
+            "en-IN",
+            dateOptions
+        );
+
+
+    document.getElementById(
+        "current-time"
+    ).textContent =
+        now.toLocaleTimeString(
+            "en-IN",
+            timeOptions
+        );
+
+}
+
+
+updateDateTime();
+
+
+setInterval(
+    updateDateTime,
+    1000
+);
+
+</script>
+
+
+</body>
+
+</html>
