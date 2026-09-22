@@ -15,10 +15,15 @@ app = Flask(__name__)
 @app.route("/")
 def home():
 
+    now = datetime.now()
+
+    current_date = now.strftime("%d %B %Y")
+    current_time = now.strftime("%I:%M:%S %p")
+
     return render_template(
         "index.html",
-        current_date=datetime.now().strftime("%d %B %Y"),
-        current_time=datetime.now().strftime("%I:%M:%S %p")
+        current_date=current_date,
+        current_time=current_time
     )
 
 
@@ -29,145 +34,134 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
 
-    location = request.form.get(
-        "location",
-        "I-94 — Minneapolis"
-    )
+    # --------------------------------------
+    # GET USER INPUT
+    # --------------------------------------
 
-    holiday = request.form.get(
-        "holiday",
-        "No Holiday"
-    )
+    location = request.form.get("location", "").strip()
+
+    latitude = request.form.get("latitude", "").strip()
+
+    longitude = request.form.get("longitude", "").strip()
+
+    holiday = request.form.get("holiday", "No")
+
+
+    # --------------------------------------
+    # CHECK LOCATION
+    # --------------------------------------
+
+    if not location:
+
+        return render_template(
+            "index.html",
+            current_date=datetime.now().strftime("%d %B %Y"),
+            current_time=datetime.now().strftime("%I:%M:%S %p"),
+            error="Please enter a location."
+        )
+
+
+    # --------------------------------------
+    # DISPLAY RECEIVED LOCATION
+    # --------------------------------------
+
+    print()
+    print("===================================")
+    print("LOCATION RECEIVED")
+    print("===================================")
+
+    print("Location  :", location)
+    print("Latitude  :", latitude)
+    print("Longitude :", longitude)
+    print("Holiday   :", holiday)
+
+    print("===================================")
+
+
+    # --------------------------------------
+    # RUN CURRENT TFT PREDICTION
+    # --------------------------------------
 
     try:
 
-        # ==========================================
-        # RUN TFT PREDICTION
-        # ==========================================
-
         result = subprocess.run(
-            [sys.executable, "predict.py"],
+            [
+                sys.executable,
+                "predict.py"
+            ],
+
             capture_output=True,
+
             text=True,
+
             cwd=os.path.dirname(
                 os.path.abspath(__file__)
             )
         )
 
-        output = result.stdout
-        error = result.stderr
+
+        # ----------------------------------
+        # SHOW PREDICT.PY OUTPUT
+        # ----------------------------------
+
+        print()
+        print("========== TFT OUTPUT ==========")
+        print(result.stdout)
+        print("=================================")
 
 
-        # ==========================================
-        # CHECK FOR PYTHON ERROR
-        # ==========================================
+        if result.stderr:
 
-        if result.returncode != 0:
-
-            return render_template(
-                "index.html",
-
-                current_date=datetime.now().strftime(
-                    "%d %B %Y"
-                ),
-
-                current_time=datetime.now().strftime(
-                    "%I:%M:%S %p"
-                ),
-
-                location=location,
-
-                holiday=holiday,
-
-                error="TFT prediction failed.",
-
-                details=error[-4000:]
-            )
+            print()
+            print("========== TFT ERROR ==========")
+            print(result.stderr)
+            print("===============================")
 
 
-        # ==========================================
-        # EXTRACT PREDICTION
-        # ==========================================
+        # ----------------------------------
+        # FIND PREDICTION VALUE
+        # ----------------------------------
 
         prediction = None
 
+        patterns = [
 
-        # Your predict.py currently prints:
-        #
-        # Predicted traffic volume : 623.17 vehicles/hour
-        #
-        # So we search for the number after
-        # "Predicted traffic volume"
+            r"Predicted\s+traffic\s*:\s*([-+]?\d+(?:\.\d+)?)",
 
-        pattern = (
-            r"Predicted\s+traffic\s+volume"
-            r"\s*:\s*"
+            r"Predicted\s+traffic\s+volume\s*:\s*([-+]?\d+(?:\.\d+)?)",
+
+            r"TRAFFIC\s+VOLUME\s+PREDICTION.*?"
+            r"Predicted\s+traffic\s*:\s*"
             r"([-+]?\d+(?:\.\d+)?)"
-        )
+
+        ]
 
 
-        match = re.search(
-            pattern,
-            output,
-            re.IGNORECASE
-        )
+        for pattern in patterns:
 
-
-        if match:
-
-            prediction = float(
-                match.group(1)
+            match = re.search(
+                pattern,
+                result.stdout,
+                re.IGNORECASE |
+                re.DOTALL
             )
 
+            if match:
 
-        # ==========================================
-        # FALLBACK
-        # ==========================================
-
-        # If the first pattern doesn't find it,
-        # search for any prediction-like line.
-
-        if prediction is None:
-
-            fallback_patterns = [
-
-                r"prediction\s*:\s*"
-                r"([-+]?\d+(?:\.\d+)?)",
-
-                r"predicted\s*:\s*"
-                r"([-+]?\d+(?:\.\d+)?)",
-
-                r"traffic\s+volume\s*:\s*"
-                r"([-+]?\d+(?:\.\d+)?)"
-
-            ]
-
-
-            for fallback_pattern in fallback_patterns:
-
-                match = re.search(
-                    fallback_pattern,
-                    output,
-                    re.IGNORECASE
+                prediction = float(
+                    match.group(1)
                 )
 
-                if match:
-
-                    prediction = float(
-                        match.group(1)
-                    )
-
-                    break
+                break
 
 
-        # ==========================================
-        # STILL NOT FOUND
-        # ==========================================
+        # ----------------------------------
+        # CHECK PREDICTION
+        # ----------------------------------
 
         if prediction is None:
 
             return render_template(
-
                 "index.html",
 
                 current_date=datetime.now().strftime(
@@ -180,58 +174,36 @@ def predict():
 
                 location=location,
 
+                latitude=latitude,
+
+                longitude=longitude,
+
                 holiday=holiday,
 
-                error="Prediction value could not be read.",
-
-                details=output[-5000:]
-
+                error="Prediction value could not be read."
             )
 
 
-        # ==========================================
+        # ----------------------------------
         # TRAFFIC CLASSIFICATION
-        # ==========================================
+        # ----------------------------------
 
         if prediction < 1200:
 
-            traffic_status = "LOW"
-
-            traffic_class = "low"
-
-            traffic_icon = "🟢"
-
+            traffic_level = "LOW TRAFFIC"
 
         elif prediction <= 4930:
 
-            traffic_status = "MEDIUM"
-
-            traffic_class = "medium"
-
-            traffic_icon = "🟠"
-
+            traffic_level = "MEDIUM TRAFFIC"
 
         else:
 
-            traffic_status = "HEAVY"
-
-            traffic_class = "heavy"
-
-            traffic_icon = "🔴"
+            traffic_level = "HEAVY TRAFFIC"
 
 
-        # ==========================================
-        # FORECAST TIME
-        # ==========================================
-
-        forecast_time = datetime.now().strftime(
-            "%I:%M %p"
-        )
-
-
-        # ==========================================
-        # SHOW RESULT
-        # ==========================================
+        # ----------------------------------
+        # RETURN RESULT
+        # ----------------------------------
 
         return render_template(
 
@@ -245,29 +217,29 @@ def predict():
                 "%I:%M:%S %p"
             ),
 
+            prediction=round(
+                prediction,
+                2
+            ),
+
+            traffic_level=traffic_level,
+
             location=location,
 
-            holiday=holiday,
+            latitude=latitude,
 
-            prediction=f"{prediction:,.2f}",
+            longitude=longitude,
 
-            traffic_status=traffic_status,
-
-            traffic_class=traffic_class,
-
-            traffic_icon=traffic_icon,
-
-            forecast_time=forecast_time
-
+            holiday=holiday
         )
 
-
-    # ==========================================
-    # GENERAL ERROR
-    # ==========================================
 
     except Exception as e:
 
+        print()
+        print("Prediction error:")
+        print(e)
+
         return render_template(
 
             "index.html",
@@ -281,28 +253,24 @@ def predict():
             ),
 
             location=location,
+
+            latitude=latitude,
+
+            longitude=longitude,
 
             holiday=holiday,
 
             error=str(e)
-
         )
 
 
 # ==========================================
-# RUN FLASK
+# START FLASK
 # ==========================================
 
 if __name__ == "__main__":
 
-    print()
-    print("==========================================")
-    print(" SMART TRAFFIC PREDICTION SYSTEM")
-    print("==========================================")
-    print("Open: http://127.0.0.1:5000")
-    print("==========================================")
-    print()
-
     app.run(
-        debug=True
+        debug=True,
+        use_reloader=False
     )
