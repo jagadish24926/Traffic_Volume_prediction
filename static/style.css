@@ -1,0 +1,55 @@
+:root { font-family: Inter, "Segoe UI", Arial, sans-serif; color: #172033; background: #f2f6fc; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.page { width: min(1050px, calc(100% - 32px)); margin: 0 auto; padding: 38px 0 24px; }
+.hero { margin: 0 0 28px; }
+.brandline { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+h1 { margin: 0; color: #2563eb; font-size: clamp(2rem, 4vw, 2.8rem); letter-spacing: -.04em; }
+h2 { margin: 0 0 18px; font-size: 1.35rem; }
+.hero p { color: #64748b; font-size: 1.05rem; margin: 10px 0; }
+.date, .muted { color: #64748b; }
+.live-dot { color: #087f5b; background: #d9fbe9; border: 1px solid #a7f3d0; border-radius: 999px; padding: 6px 11px; font-size: .75rem; font-weight: 800; letter-spacing: .08em; }
+.card { background: #fff; border: 1px solid #e0e8f3; border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 32px rgba(15, 23, 42, .06); }
+label { font-weight: 650; }
+.search-row { display: flex; gap: 10px; margin-top: 10px; }
+input[type="text"] { min-width: 0; padding: 13px 15px; border: 1px solid #cbd5e1; border-radius: 11px; font: inherit; flex: 1; background: #f8fafc; }
+input:focus { outline: 2px solid #93c5fd; border-color: #3b82f6; }
+button { cursor: pointer; border: 0; border-radius: 11px; padding: 12px 17px; font: inherit; font-weight: 700; background: #2563eb; color: white; }
+button:hover { filter: brightness(.96); }
+button:disabled { opacity: .65; cursor: wait; }
+button.secondary { color: #334155; background: #eef2f7; border: 1px solid #cbd5e1; }
+.results { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.result-btn { color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; text-align: left; }
+.place { margin: 20px 0 4px; font-weight: 700; }
+.options { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin: 18px 0; }
+.check { display: flex; align-items: center; gap: 8px; }
+.check input { width: 17px; height: 17px; }
+#festival-name { flex: 1 1 230px; }
+.primary { min-width: 160px; }
+.small { font-size: .86rem; }
+.hidden { display: none !important; }
+.error { color: #b91c1c; background: #fef2f2; padding: 12px; border-radius: 10px; }
+.weather-card { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; }
+.weather-card h2 { margin-bottom: 7px; }
+.weather-card p { margin: 5px 0; }
+.weather-number strong { font-size: 2.8rem; }
+.weather-number span { font-size: 1.2rem; color: #64748b; }
+.weather-details { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 12px; color: #475569; }
+.best-time { font-size: 1.15rem; font-weight: 800; }
+.notice { background: #fff5d6; border-radius: 10px; padding: 12px; color: #7c4a03; line-height: 1.5; }
+.chart-wrap { height: 300px; margin: 14px 0 25px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+th { color: #334155; background: #f8fafc; }
+.best-row { background: #dcfce7; font-weight: 700; }
+footer { text-align: center; color: #64748b; font-size: .85rem; padding: 8px 0 20px; }
+@media (max-width: 720px) {
+  .page { width: min(100% - 20px, 1050px); padding-top: 22px; }
+  .card { padding: 18px; border-radius: 15px; }
+  .search-row { flex-direction: column; }
+  .search-row button { width: 100%; }
+  .weather-card { grid-template-columns: 1fr; }
+  .weather-number { grid-row: 1; }
+  .weather-details { grid-column: 1; }
+}
